@@ -1,2 +1,2 @@
 # Midi-Humanizer
-![Alt_text}(diagram.svg)
+![Alt_text](diagram.svg)
