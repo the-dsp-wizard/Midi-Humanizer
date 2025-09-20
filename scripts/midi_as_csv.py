@@ -2,8 +2,6 @@ import mido
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from statsmodels.tsa.ar_model import AutoReg
-from scipy.signal import lfilter, savgol_filter
 import csv
 
 def autocorrelate(x):
