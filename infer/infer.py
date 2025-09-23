@@ -2,6 +2,8 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 import modelCoeffs
+import mido
+import sys
 
 class MidiHumanizer:
     def __init__(self):
@@ -40,12 +42,20 @@ class MidiHumanizer:
 
         return out
 
+if len(sys.argv) != 3:
+    print("Usage: python infer.py input.mid output.mid")
+    sys.exit(1)
+
 midi_human = MidiHumanizer()
 
-y = np.zeros(1000)
+input_file = mido.MidiFile(sys.argv[1])
 
-for i in range(1000):
-    y[i] = midi_human.process(0.25)
+for n, track in enumerate(input_file.tracks):
+    for msg in track:
+        if msg.type == 'note_on' and msg.velocity > 0:
+            msg.time /= input_file.ticks_per_beat
+            msg.time += midi_human.process(msg.time)
+            msg.time *= input_file.ticks_per_beat
+            msg.time = int(msg.time)
 
-plt.plot(y)
-plt.show()
+input_file.save(sys.argv[2])
