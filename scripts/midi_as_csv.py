@@ -1,8 +1,7 @@
 import mido
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 import csv
+
 
 def autocorrelate(x):
     result = np.correlate(x, x, mode='full')
