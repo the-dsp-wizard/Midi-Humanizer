@@ -2,8 +2,8 @@ import streamlit as st
 import infer
 from io import BytesIO
 
-st.title("Hello Streamlit!")
-st.write("This is a simple Streamlit app.")
+st.title("MIDI Humanizer")
+st.write("An RNN based MIDI file humanizer")
 
 uploaded_file = st.file_uploader("Choose a file")
 
