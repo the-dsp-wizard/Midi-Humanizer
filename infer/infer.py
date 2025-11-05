@@ -7,7 +7,7 @@ import sys
 
 class MidiHumanizer:
     def __init__(self):
-        stddev = 0.07213827389933028
+        stddev = 0.01
         mean = 0
 
         lower_bound = -stddev
@@ -42,20 +42,20 @@ class MidiHumanizer:
 
         return out
 
-if len(sys.argv) != 3:
-    print("Usage: python infer.py input.mid output.mid")
-    sys.exit(1)
 
 midi_human = MidiHumanizer()
 
-input_file = mido.MidiFile(sys.argv[1])
+def process(in_file, out_file):
+    input_file = mido.MidiFile(file=in_file)
 
-for n, track in enumerate(input_file.tracks):
-    for msg in track:
-        if msg.type == 'note_on' and msg.velocity > 0:
-            msg.time /= input_file.ticks_per_beat
-            msg.time += midi_human.process(msg.time)
-            msg.time *= input_file.ticks_per_beat
-            msg.time = int(msg.time)
+    for n, track in enumerate(input_file.tracks):
+        for msg in track:
+            if msg.type == 'note_on' and msg.velocity > 0:
+                msg.time /= input_file.ticks_per_beat
+                msg.time += midi_human.process(msg.time)
+                msg.time *= input_file.ticks_per_beat
+                msg.time = int(msg.time)
+                if msg.time < 0:
+                    msg.time = 0
 
-input_file.save(sys.argv[2])
+    input_file.save(out_file)
