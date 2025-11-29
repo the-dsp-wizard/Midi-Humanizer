@@ -4,10 +4,16 @@ import matplotlib.pyplot as plt
 import modelCoeffs
 import mido
 import sys
+import streamlit as st
+import io
 
 class MidiHumanizer:
     def __init__(self):
-        stddev = 0.01
+        self.x_ = np.zeros(5)
+        self.y_ = np.zeros(6)
+
+    def process(self, diff, amount):
+        stddev = 0.05 * amount + 0.001
         mean = 0
 
         lower_bound = -stddev
@@ -17,10 +23,7 @@ class MidiHumanizer:
         b = (upper_bound - mean) / stddev  # = +1
 
         self.trunc_gauss = scipy.stats.truncnorm(a, b, loc=0, scale=stddev)
-        self.x_ = np.zeros(5)
-        self.y_ = np.zeros(6)
 
-    def process(self, diff):
         l0 = np.tanh(np.dot(np.append(diff, self.x_), modelCoeffs.l0_x) + np.dot(self.y_, modelCoeffs.l0_y) + modelCoeffs.l0_b) * modelCoeffs.l0_oc
         l1 = np.tanh(np.dot(np.append(diff, self.x_), modelCoeffs.l1_x) + np.dot(self.y_, modelCoeffs.l1_y) + modelCoeffs.l1_b) * modelCoeffs.l1_oc
         l2 = np.tanh(np.dot(np.append(diff, self.x_), modelCoeffs.l2_x) + np.dot(self.y_, modelCoeffs.l2_y) + modelCoeffs.l2_b) * modelCoeffs.l2_oc
@@ -45,17 +48,23 @@ class MidiHumanizer:
 
 midi_human = MidiHumanizer()
 
-def process(in_file, out_file):
+def process(in_file, out_file, amount):
     input_file = mido.MidiFile(file=in_file)
+    if len(input_file.tracks) > 1:
+        st.warning("This MIDI file contains more than one track. Please upload a single-track file.")
 
     for n, track in enumerate(input_file.tracks):
         for msg in track:
             if msg.type == 'note_on' and msg.velocity > 0:
                 msg.time /= input_file.ticks_per_beat
-                msg.time += midi_human.process(msg.time)
+                msg.time += midi_human.process(msg.time, amount)
                 msg.time *= input_file.ticks_per_beat
                 msg.time = int(msg.time)
                 if msg.time < 0:
                     msg.time = 0
 
-    input_file.save(out_file)
+    buffer = io.BytesIO()
+    input_file.save(file=buffer)
+    buffer.seek(0)
+
+    return buffer.read()
