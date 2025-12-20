@@ -6,8 +6,8 @@ import player
 import mido
 from io import BytesIO
 
-st.title("Hello Streamlit!")
-st.write("This is a simple Streamlit app.")
+st.title("MIDI Humanizer")
+st.write("an ML based MIDI humanizer.")
 
 uploaded_file = st.file_uploader("Choose a file")
 
